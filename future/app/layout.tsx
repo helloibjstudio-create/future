@@ -34,7 +34,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       {/* Inject both font variables into the body */}
-      <body className={`${darkerGrotesque.variable} ${inter.variable} ${geist} antialiased`}>
+      <body className={`${darkerGrotesque.variable} ${inter.variable} ${geist.variable} antialiased`}>
         {children}
       </body>
     </html>
