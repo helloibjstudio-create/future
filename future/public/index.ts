@@ -1,2 +1,6 @@
 export const logo = "./logo.svg"
 export const ripple = "./Ripple.svg"
+export const HeroBoy = "./heroBoy.svg"
+export const Investors = "./investor.svg"
+export const Founders = "./founders.svg"
+export const Builders = "./builders.svg"

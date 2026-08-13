@@ -4,6 +4,7 @@
   /* Your Custom Fonts */
   --font-darker: var(--font-darker-grotesque);
   --font-sans: var(--font-inter);
+  --font-geist: var(--font-geist);
   
   /* Next.js Theme Colors */
   --color-background: var(--background);
@@ -13,6 +14,9 @@
 
 @utility font-darker {
   font-family: var(--font-darker-grotesque);
+}
+@utility font-geist {
+  font-family: var(--font-geist);
 }
 :root {
   --background: #ffffff;

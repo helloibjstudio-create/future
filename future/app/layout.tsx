@@ -1,11 +1,16 @@
 import type { Metadata } from "next";
-import { Darker_Grotesque, Inter } from "next/font/google";
+import { Darker_Grotesque, Inter, Geist } from "next/font/google";
 import "./globals.css";
 
 // Configure Darker Grotesque
 const darkerGrotesque = Darker_Grotesque({
   subsets: ["latin"],
   variable: "--font-darker-grotesque",
+  display: "swap",
+});
+const geist = Geist({
+  subsets: ["latin"],
+  variable: "--font-geist",
   display: "swap",
 });
 
@@ -29,7 +34,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       {/* Inject both font variables into the body */}
-      <body className={`${darkerGrotesque.variable} ${inter.variable} antialiased`}>
+      <body className={`${darkerGrotesque.variable} ${inter.variable} ${geist} antialiased`}>
         {children}
       </body>
     </html>
