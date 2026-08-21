@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
-import { Darker_Grotesque, Inter, Geist } from "next/font/google";
+import { Darker_Grotesque, Inter, Geist, Instrument_Serif } from "next/font/google";
 import "./globals.css";
 
-// Configure Darker Grotesque
 const darkerGrotesque = Darker_Grotesque({
   subsets: ["latin"],
   variable: "--font-darker-grotesque",
@@ -14,10 +13,17 @@ const geist = Geist({
   display: "swap",
 });
 
-// Configure your secondary font
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
+  display: "swap",
+});
+
+const instrumentSerif = Instrument_Serif({
+  subsets: ["latin"],
+  weight: "400",
+  style: ["normal", "italic"],
+  variable: "--font-instrument-serif",
   display: "swap",
 });
 
@@ -34,7 +40,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       {/* Inject both font variables into the body */}
-      <body className={`${darkerGrotesque.variable} ${inter.variable} ${geist.variable} antialiased`}>
+      <body className={`${darkerGrotesque.variable} ${inter.variable} ${geist.variable} ${instrumentSerif.variable} antialiased`}>
         {children}
       </body>
     </html>
