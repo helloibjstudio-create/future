@@ -125,6 +125,15 @@ function nodePercentPos(index: number) {
 export default function DimensionsSection() {
   const [activeKey, setActiveKey] = useState(DIMENSIONS[0].key);
 
+  // Only forward hover-driven activation from a real mouse. Touch devices
+  // (including Chrome on Android) synthesize mouseenter events after any tap
+  // or scroll gesture, which was thrashing React state and restarting the
+  // 700ms line animations mid-scroll.
+  const hoverActivate =
+    (key: string) => (e: React.PointerEvent<Element>) => {
+      if (e.pointerType === "mouse") setActiveKey(key);
+    };
+
   return (
     <section
       id="companies"
@@ -148,8 +157,8 @@ export default function DimensionsSection() {
         </div>
 
         <div className="grid grid-cols-1 items-start gap-16 md:gap-24 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:gap-32">
-          <div className="flex items-start justify-center pt-8 lg:pt-16">
-            <div className="relative aspect-square w-full max-w-124">
+          <div className="flex items-start justify-center overflow-hidden pt-8 lg:pt-16">
+            <div className="relative aspect-square w-full max-w-124 [contain:layout_paint]">
               <svg
                 viewBox={`0 0 ${VIEW} ${VIEW}`}
                 className="absolute inset-0 h-full w-full overflow-visible"
@@ -230,7 +239,7 @@ export default function DimensionsSection() {
                         cursor: "pointer",
                       }}
                       onClick={() => setActiveKey(d.key)}
-                      onMouseEnter={() => setActiveKey(d.key)}
+                      onPointerEnter={hoverActivate(d.key)}
                     />
                   );
                 })}
@@ -244,7 +253,7 @@ export default function DimensionsSection() {
                     key={`label-${d.key}`}
                     type="button"
                     onClick={() => setActiveKey(d.key)}
-                    onMouseEnter={() => setActiveKey(d.key)}
+                    onPointerEnter={hoverActivate(d.key)}
                     style={{
                       left: `${x}%`,
                       top: `${y}%`,
@@ -271,7 +280,7 @@ export default function DimensionsSection() {
                   key={d.key}
                   type="button"
                   onClick={() => setActiveKey(d.key)}
-                  onMouseEnter={() => setActiveKey(d.key)}
+                  onPointerEnter={hoverActivate(d.key)}
                   data-dimension-card
                   data-dimension-key={d.key}
                   data-active={isActive}
