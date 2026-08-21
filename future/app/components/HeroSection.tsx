@@ -1,5 +1,6 @@
 "use client";
 
+import { HeroVideoMp4, HeroVideoWebm } from "@/public";
 import { useEffect, useRef } from "react";
 
 const HERO_PILLS = [
@@ -12,6 +13,58 @@ export default function HeroSection() {
   const sectionRef = useRef<HTMLElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    video.muted = true;
+    video.loop = true;
+
+    const tryPlay = () => {
+      const p = video.play();
+      if (p && typeof p.then === "function") {
+        p.catch(() => {
+          const resume = () => {
+            video.play().catch(() => {});
+            window.removeEventListener("pointerdown", resume);
+            window.removeEventListener("touchstart", resume);
+            window.removeEventListener("keydown", resume);
+          };
+          window.addEventListener("pointerdown", resume, { once: true });
+          window.addEventListener("touchstart", resume, { once: true });
+          window.addEventListener("keydown", resume, { once: true });
+        });
+      }
+    };
+
+    const onEnded = () => {
+      try {
+        video.currentTime = 0;
+      } catch {
+        /* ignore */
+      }
+      video.play().catch(() => {});
+    };
+
+    if (video.readyState >= 2) {
+      tryPlay();
+    } else {
+      const onReady = () => {
+        tryPlay();
+        video.removeEventListener("loadeddata", onReady);
+        video.removeEventListener("canplay", onReady);
+      };
+      video.addEventListener("loadeddata", onReady);
+      video.addEventListener("canplay", onReady);
+    }
+
+    video.addEventListener("ended", onEnded);
+    return () => {
+      video.removeEventListener("ended", onEnded);
+    };
+  }, []);
 
   useEffect(() => {
     const el = sectionRef.current;
@@ -60,6 +113,7 @@ export default function HeroSection() {
       className="sticky top-0 z-0 flex h-screen w-full items-end overflow-hidden pb-16 sm:pb-24 lg:pb-44"
     >
       <video
+        ref={videoRef}
         data-hero-video
         className="absolute inset-0 h-full w-full object-cover"
         autoPlay
@@ -67,8 +121,13 @@ export default function HeroSection() {
         loop
         playsInline
         preload="auto"
-        src="/0_Corporate_Slideshow_Company_Timeline_1920x1080.mp4"
-      />
+        controls={false}
+        disablePictureInPicture
+        disableRemotePlayback
+      >
+        <source src={HeroVideoMp4} type="video/mp4" />
+        <source src={HeroVideoWebm} type="video/webm" />
+      </video>
 
       <div
         ref={overlayRef}
