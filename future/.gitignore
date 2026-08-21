@@ -39,3 +39,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Large video assets served from Cloudinary — never commit locally
+future/public/*.mp4
+future/public/*.webm
+future/public/*.mov
