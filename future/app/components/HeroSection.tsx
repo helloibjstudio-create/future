@@ -110,7 +110,7 @@ export default function HeroSection() {
       ref={sectionRef}
       id="hero"
       data-section="hero"
-      className="sticky top-0 z-0 flex h-screen w-full items-end overflow-hidden pb-16 sm:pb-24 lg:pb-44"
+      className="sticky top-0 z-0 flex h-[100dvh] w-full items-end overflow-hidden pb-12 sm:pb-20 lg:pb-36"
     >
       <video
         ref={videoRef}
@@ -139,7 +139,7 @@ export default function HeroSection() {
       <div
         data-hero-bottom-fade
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-[55vh]"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-[50vh] sm:h-[55vh]"
         style={{
           background:
             "linear-gradient(to bottom, rgba(5, 14, 10, 0) 0%, rgba(5, 14, 10, 0.35) 45%, rgba(5, 14, 10, 0.8) 75%, rgba(5, 14, 10, 1) 100%)",
@@ -148,19 +148,21 @@ export default function HeroSection() {
 
       <div
         ref={contentRef}
-        className="relative z-10 flex w-full flex-col items-start gap-6 px-6 will-change-[opacity,transform] sm:gap-8 lg:pr-20 lg:pl-20"
+        className="relative z-10 flex w-full flex-col items-start gap-5 px-5 will-change-[opacity,transform] sm:gap-7 sm:px-8 lg:gap-8 lg:px-20"
       >
         <h1
           data-hero-headline
-          className="font-darker text-[44px] leading-[0.85] font-semibold tracking-[-0.02em] text-[#FFE3C3] sm:text-[60px] md:text-[80px] lg:text-[96px] lg:leading-18.5 lg:tracking-[-2.88px]"
+          className="font-darker text-[38px] leading-[0.85] font-semibold tracking-[-0.02em] text-[#FFE3C3] xs:text-[44px] sm:text-[60px] md:text-[80px] lg:text-[96px] lg:leading-18.5 lg:tracking-[-2.88px]"
         >
           We{" "}
           <span
             data-hero-strike
             className="text-white"
             style={{
-              background:
-                "linear-gradient(#fff, #fff) no-repeat 0 62%/100% 6px",
+              backgroundImage: "linear-gradient(#fff, #fff)",
+              backgroundRepeat: "no-repeat",
+              backgroundPosition: "0 62%",
+              backgroundSize: "100% 0.07em",
             }}
           >
             invest in companies who
@@ -176,7 +178,7 @@ export default function HeroSection() {
               href={pill.href}
               data-hero-pill
               data-active={pill.variant === "solid"}
-              className="font-darker inline-flex items-center justify-center gap-2.5 rounded-[500px] px-4 py-3 text-[14px] font-extrabold leading-6 tracking-[-0.4px] transition-colors sm:px-5 sm:py-4 sm:text-[16px] sm:leading-7 sm:tracking-[-0.5px] lg:text-[20px] lg:tracking-[-0.6px] data-[active=false]:glass-pill data-[active=false]:text-white data-[active=true]:bg-[#FFE3C3] data-[active=true]:text-[#132D27] data-[active=true]:hover:bg-white"
+              className="font-darker inline-flex items-center justify-center gap-2 rounded-[500px] px-3.5 py-2.5 text-[13px] font-extrabold leading-tight tracking-[-0.3px] transition-colors sm:px-5 sm:py-3.5 sm:text-[16px] sm:leading-7 sm:tracking-[-0.5px] lg:text-[20px] lg:tracking-[-0.6px] data-[active=false]:glass-pill data-[active=false]:text-white data-[active=true]:bg-[#FFE3C3] data-[active=true]:text-[#132D27] data-[active=true]:hover:bg-white"
             >
               {pill.label}
             </a>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 
 type Dimension = {
   key: string;
@@ -81,29 +81,25 @@ const DIMENSIONS: Dimension[] = [
 
 const DIAGRAM_ORDER = ["talent", "asset", "itana", "infraco", "futurepay"];
 const DIAGRAM_DIMENSIONS = DIAGRAM_ORDER.map(
-  (key) => DIMENSIONS.find((d) => d.key === key)!,
+  (key) => DIMENSIONS.find((d) => d.key === key)!
 );
 
-const VIEW = 496;
+const VIEW = 560;
 const CENTER = VIEW / 2;
-const OUTER_RING_R = 247.25;
-const NODE_R = 22;
-const NODE_ORBIT = 248;
-const NODE_ORBIT_PCT = (NODE_ORBIT / VIEW) * 100;
-
-const LABEL_ABOVE = "translate(-50%, calc(-100% - 14px))";
-const LABEL_BELOW = "translate(-50%, 14px)";
+const OUTER_RING_R = 210;
+const NODE_R = 20;
+const NODE_ORBIT = 210;
 
 const LABEL_TRANSFORMS = [
-  LABEL_ABOVE,
-  LABEL_ABOVE,
-  LABEL_BELOW,
-  LABEL_BELOW,
-  LABEL_ABOVE,
+  "translate(-50%, calc(-100% - 12px))",
+  "translate(-50%, calc(-100% - 12px))",
+  "translate(-50%, 14px)",
+  "translate(-50%, 14px)",
+  "translate(-50%, calc(-100% - 12px))",
 ];
 
 function nodeAngle(index: number) {
-  return (index / DIMENSIONS.length) * Math.PI * 2 - Math.PI / 2;
+  return (index / DIAGRAM_DIMENSIONS.length) * Math.PI * 2 - Math.PI / 2;
 }
 
 function nodeSvgPos(index: number) {
@@ -114,25 +110,46 @@ function nodeSvgPos(index: number) {
   };
 }
 
-function nodePercentPos(index: number) {
-  const a = nodeAngle(index);
-  return {
-    x: 50 + Math.cos(a) * NODE_ORBIT_PCT,
-    y: 50 + Math.sin(a) * NODE_ORBIT_PCT,
-  };
-}
-
 export default function DimensionsSection() {
   const [activeKey, setActiveKey] = useState(DIMENSIONS[0].key);
+  const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
 
-  // Only forward hover-driven activation from a real mouse. Touch devices
-  // (including Chrome on Android) synthesize mouseenter events after any tap
-  // or scroll gesture, which was thrashing React state and restarting the
-  // 700ms line animations mid-scroll.
-  const hoverActivate =
-    (key: string) => (e: React.PointerEvent<Element>) => {
-      if (e.pointerType === "mouse") setActiveKey(key);
-    };
+  useEffect(() => {
+    const isMobile = window.innerWidth < 1024;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const key = entry.target.getAttribute("data-dimension-key");
+            if (key) setActiveKey(key);
+          }
+        });
+      },
+      {
+        root: null,
+        // Wider vertical window on mobile to account for sticky diagram header
+        rootMargin: isMobile ? "-55% 0px -25% 0px" : "-35% 0px -35% 0px",
+        threshold: 0.1,
+      }
+    );
+
+    cardRefs.current.forEach((el) => {
+      if (el) observer.observe(el);
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  const scrollToDimension = (key: string) => {
+    setActiveKey(key);
+    const index = DIMENSIONS.findIndex((d) => d.key === key);
+    if (cardRefs.current[index]) {
+      cardRefs.current[index]?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }
+  };
 
   return (
     <section
@@ -140,30 +157,36 @@ export default function DimensionsSection() {
       data-section="dimensions"
       className="relative w-full bg-[#050E0A] pt-4 pb-24 md:pt-8 md:pb-32"
     >
-      <div className="mx-auto max-w-300 px-6 lg:px-12">
-        <div className="mx-auto mb-12 flex max-w-240 flex-col items-center gap-6 text-center sm:gap-8 lg:mb-16 lg:gap-10">
-          <p className="font-geist text-[14px] font-medium uppercase leading-6 tracking-[-0.4px] text-[#E8FFED] sm:text-[16px] sm:leading-7 sm:tracking-[-0.64px]">
+      <div className="mx-auto max-w-300 px-4 sm:px-6 lg:px-12">
+        {/* Section Header */}
+        <div className="mx-auto mb-8 flex max-w-240 flex-col items-center gap-4 text-center sm:mb-12 sm:gap-6 lg:mb-16 lg:gap-10">
+          <p className="font-geist text-[13px] font-medium uppercase leading-6 tracking-[-0.4px] text-[#E8FFED] sm:text-[16px] sm:leading-7">
             Companies
           </p>
-          <h2 className="font-darker text-[36px] font-extrabold uppercase leading-[1.05] tracking-[-1px] text-[#E8FFED] sm:text-[44px] sm:tracking-[-1.32px] md:text-[52px] md:tracking-[-1.56px] lg:text-[64px] lg:leading-15 lg:tracking-[-1.92px]">
+          <h2 className="font-darker text-[32px] font-extrabold uppercase leading-[1.05] tracking-[-1px] text-[#E8FFED] sm:text-[44px] md:text-[52px] lg:text-[64px] lg:leading-15">
             Five dimensions.
             <br />
             One integrated engine.
           </h2>
-          <p className="max-w-167.25 font-geist text-[16px] font-medium leading-7 tracking-[-0.4px] text-white/68 sm:text-[18px] lg:text-[20px] lg:leading-8 lg:tracking-[-0.8px]">
+          <p className="max-w-167.25 font-geist text-[15px] font-medium leading-6 text-white/68 sm:text-[18px] sm:leading-7 lg:text-[20px] lg:leading-8">
             Not a holding company. Not a federation. One machine built across
             the five dimensions that make Africa&apos;s digital economy possible.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 items-start gap-16 md:gap-24 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:gap-32">
-          <div className="flex items-start justify-center overflow-hidden pt-8 lg:pt-16">
-            <div className="relative aspect-square w-full max-w-124 [contain:layout_paint]">
+        {/* Layout Grid */}
+        <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:gap-24">
+          
+          {/* Diagram Container */}
+          {/* On Mobile/Tablet: Sticky top with solid background so scrolling list disappears behind it */}
+          <div className="sticky top-0 z-20 flex w-full flex-col items-center justify-center bg-[#050E0A] pt-4 pb-6 sm:py-6 lg:top-16 lg:z-10 lg:items-start lg:bg-transparent lg:p-0">
+            <div className="relative aspect-square w-full max-w-[320px] xs:max-w-[360px] sm:max-w-[420px] lg:max-w-[480px]">
               <svg
                 viewBox={`0 0 ${VIEW} ${VIEW}`}
-                className="absolute inset-0 h-full w-full overflow-visible"
+                className="h-full w-full overflow-visible"
                 aria-hidden="true"
               >
+                {/* Outer Ring */}
                 <circle
                   cx={CENTER}
                   cy={CENTER}
@@ -173,16 +196,18 @@ export default function DimensionsSection() {
                   strokeWidth="1.5"
                 />
 
+                {/* Inner Dashed Ring */}
                 <circle
                   cx={CENTER}
                   cy={CENTER}
-                  r="92.5"
+                  r="85"
                   fill="none"
                   stroke="#152422"
-                  strokeWidth="3"
-                  strokeDasharray="11 11"
+                  strokeWidth="2.5"
+                  strokeDasharray="10 10"
                 />
 
+                {/* Dark Base Connector Lines */}
                 {DIAGRAM_DIMENSIONS.map((d, i) => {
                   const { x, y } = nodeSvgPos(i);
                   return (
@@ -198,6 +223,7 @@ export default function DimensionsSection() {
                   );
                 })}
 
+                {/* Glowing Light Ray */}
                 {DIAGRAM_DIMENSIONS.map((d, i) => {
                   const { x, y } = nodeSvgPos(i);
                   const isActive = d.key === activeKey;
@@ -209,19 +235,22 @@ export default function DimensionsSection() {
                       x2={x}
                       y2={y}
                       stroke="#6DD693"
-                      strokeWidth={3}
+                      strokeWidth={3.5}
                       strokeLinecap="round"
                       style={{
                         strokeDasharray: NODE_ORBIT,
                         strokeDashoffset: isActive ? 0 : NODE_ORBIT,
-                        transition: "stroke-dashoffset 700ms cubic-bezier(0.22, 1, 0.36, 1)",
+                        transition:
+                          "stroke-dashoffset 650ms cubic-bezier(0.22, 1, 0.36, 1)",
                       }}
                     />
                   );
                 })}
 
+                {/* Center Core */}
                 <circle cx={CENTER} cy={CENTER} r={NODE_R} fill="#6DD693" />
 
+                {/* Outer Orbit Nodes */}
                 {DIAGRAM_DIMENSIONS.map((d, i) => {
                   const { x, y } = nodeSvgPos(i);
                   const isActive = d.key === activeKey;
@@ -233,36 +262,36 @@ export default function DimensionsSection() {
                       r={NODE_R}
                       fill={isActive ? "#6DD693" : "#12221F"}
                       style={{
-                        transition: isActive
-                          ? "fill 250ms ease 500ms"
-                          : "fill 200ms ease",
+                        transition: "fill 300ms ease",
                         cursor: "pointer",
                       }}
-                      onClick={() => setActiveKey(d.key)}
-                      onPointerEnter={hoverActivate(d.key)}
+                      onClick={() => scrollToDimension(d.key)}
                     />
                   );
                 })}
               </svg>
 
+              {/* Edge Node Buttons */}
               {DIAGRAM_DIMENSIONS.map((d, i) => {
-                const { x, y } = nodePercentPos(i);
+                const { x, y } = nodeSvgPos(i);
+                const xPct = (x / VIEW) * 100;
+                const yPct = (y / VIEW) * 100;
                 const isActive = d.key === activeKey;
+
                 return (
                   <button
                     key={`label-${d.key}`}
                     type="button"
-                    onClick={() => setActiveKey(d.key)}
-                    onPointerEnter={hoverActivate(d.key)}
+                    onClick={() => scrollToDimension(d.key)}
                     style={{
-                      left: `${x}%`,
-                      top: `${y}%`,
+                      left: `${xPct}%`,
+                      top: `${yPct}%`,
                       transform: LABEL_TRANSFORMS[i],
                     }}
-                    className={`absolute cursor-pointer font-darker text-[13px] uppercase leading-6 tracking-[-0.36px] whitespace-nowrap transition-colors sm:text-[16px] sm:leading-8 sm:tracking-[-0.48px] md:text-[20px] md:leading-10 md:tracking-[-0.6px] lg:text-[24px] lg:leading-15 lg:tracking-[-0.72px] ${
+                    className={`absolute cursor-pointer whitespace-nowrap font-darker text-[11px] uppercase leading-none tracking-tight transition-all duration-300 sm:text-[14px] md:text-[16px] lg:text-[18px] ${
                       isActive
-                        ? "font-extrabold text-[#6DD693]"
-                        : "font-bold text-[#8CA195] hover:text-[#B5CDBF]"
+                        ? "scale-105 font-extrabold text-[#6DD693]"
+                        : "font-bold text-[#8CA195] opacity-60 hover:text-[#B5CDBF] hover:opacity-100"
                     }`}
                   >
                     {d.label}
@@ -270,36 +299,43 @@ export default function DimensionsSection() {
                 );
               })}
             </div>
+
+            {/* Bottom Gradient Fade for Mobile (smoothly cuts off card text as it scrolls under) */}
+            <div className="pointer-events-none absolute -bottom-6 left-0 h-6 w-full bg-gradient-to-b from-[#050E0A] to-transparent lg:hidden" />
           </div>
 
-          <div className="flex flex-col divide-y divide-[#152422] border-y border-[#152422]">
-            {DIMENSIONS.map((d) => {
+          {/* Scrolling Company Narrative List */}
+          <div className="relative z-10 flex flex-col pt-2 lg:pt-0">
+            {DIMENSIONS.map((d, index) => {
               const isActive = d.key === activeKey;
               return (
-                <button
+                <div
                   key={d.key}
-                  type="button"
-                  onClick={() => setActiveKey(d.key)}
-                  onPointerEnter={hoverActivate(d.key)}
-                  data-dimension-card
+                  ref={(el) => {
+                    cardRefs.current[index] = el;
+                  }}
                   data-dimension-key={d.key}
-                  data-active={isActive}
-                  className="py-6 text-left transition-colors data-[active=true]:bg-[rgba(3,20,17,0)]"
+                  className={`flex min-h-[50vh] flex-col justify-center border-b border-[#152422] py-10 transition-all duration-500 sm:min-h-[60vh] sm:py-14 lg:min-h-[85vh] lg:py-16 ${
+                    isActive
+                      ? "opacity-100"
+                      : "opacity-20 sm:opacity-25"
+                  }`}
                 >
-                  <p className="font-darker text-[14px] font-bold uppercase leading-15 tracking-[-0.42px] text-[#A8AEAD]">
+                  <p className="font-darker text-[13px] font-bold uppercase tracking-[-0.42px] text-[#A8AEAD] sm:text-[14px]">
                     {d.category}
                   </p>
-                  <h3 className="font-darker text-[22px] font-bold uppercase leading-10 tracking-[-0.66px] text-[#6DD693] sm:text-[24px] sm:leading-12 sm:tracking-[-0.72px] lg:text-[28px] lg:leading-15 lg:tracking-[-0.84px]">
+                  <h3 className="font-darker text-[24px] font-bold uppercase leading-9 tracking-[-0.66px] text-[#6DD693] sm:text-[30px] sm:leading-11 lg:text-[36px] lg:leading-12">
                     {d.title}
                   </h3>
-                  <p className="font-geist text-[16px] font-medium leading-8 tracking-[-0.64px] text-white/68">
+                  <p className="mt-2 font-geist text-[15px] font-medium leading-6 tracking-[-0.4px] text-white/80 sm:text-[17px] sm:leading-7">
                     {d.description}
                   </p>
-                  <ul className="mt-3 space-y-1">
+
+                  <ul className="mt-4 space-y-2">
                     {d.bullets.map((b) => (
                       <li
                         key={b}
-                        className="flex items-center gap-2 font-darker text-[16px] font-semibold leading-8 tracking-[-0.32px] text-white/68"
+                        className="flex items-center gap-3 font-darker text-[15px] font-semibold leading-6 text-white/70 sm:text-[16px]"
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -317,13 +353,6 @@ export default function DimensionsSection() {
                             height="15"
                             rx="7.5"
                             fill="#12221F"
-                          />
-                          <rect
-                            x="0.5"
-                            y="0.5"
-                            width="15"
-                            height="15"
-                            rx="7.5"
                             stroke="#253431"
                           />
                           <path
@@ -336,19 +365,19 @@ export default function DimensionsSection() {
                       </li>
                     ))}
                   </ul>
-                  <div className="mt-4 flex items-center gap-2">
+
+                  <div className="mt-5 flex items-center gap-3">
                     {d.links.map((l) => (
                       <a
                         key={l.label}
                         href={l.href}
-                        onClick={(e) => e.stopPropagation()}
-                        className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2 font-geist text-[11px] font-semibold tracking-wide text-white transition-colors hover:bg-white/10"
+                        className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3.5 py-1.5 font-geist text-[11px] font-semibold tracking-wide text-white transition-colors hover:bg-white/15 sm:px-4 sm:py-2 sm:text-[12px]"
                       >
                         {l.label === "WEBSITE" ? (
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
-                            width="12"
-                            height="12"
+                            width="13"
+                            height="13"
                             viewBox="0 0 24 24"
                             fill="none"
                             stroke="currentColor"
@@ -364,8 +393,8 @@ export default function DimensionsSection() {
                         ) : (
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
-                            width="12"
-                            height="12"
+                            width="13"
+                            height="13"
                             viewBox="0 0 24 24"
                             fill="currentColor"
                             aria-hidden="true"
@@ -377,7 +406,7 @@ export default function DimensionsSection() {
                       </a>
                     ))}
                   </div>
-                </button>
+                </div>
               );
             })}
           </div>

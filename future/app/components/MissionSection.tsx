@@ -13,9 +13,13 @@ function Words({ text }: { text: string }) {
   return (
     <>
       {parts.map((word, i) => (
-        <span key={i} data-reveal-word style={{ opacity: 0.18 }}>
-          {word}
-          {i < parts.length - 1 ? " " : ""}
+        <span
+          key={i}
+          data-reveal-word
+          className="inline-block will-change-[opacity]"
+          style={{ opacity: 0.18 }}
+        >
+          {word}&nbsp;
         </span>
       ))}
     </>
@@ -23,59 +27,47 @@ function Words({ text }: { text: string }) {
 }
 
 export default function MissionSection() {
-  const sectionRef = useRef<HTMLElement>(null);
+  const containerRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
-    const section = sectionRef.current;
-    if (!section) return;
+    const container = containerRef.current;
+    if (!container) return;
 
-    let lines: HTMLElement[][] = [];
-    let totalWords = 0;
+    let words: HTMLElement[] = [];
+    let total = 0;
 
-    const regroup = () => {
-      const words = Array.from(
-        section.querySelectorAll<HTMLElement>("[data-reveal-word]"),
+    const collect = () => {
+      words = Array.from(
+        container.querySelectorAll<HTMLElement>("[data-reveal-word]")
       );
-      lines = [];
-      let current: HTMLElement[] = [];
-      let currentY = Number.NEGATIVE_INFINITY;
-      for (const w of words) {
-        const y = Math.round(w.getBoundingClientRect().top);
-        if (y - currentY > 6) {
-          if (current.length) lines.push(current);
-          current = [];
-          currentY = y;
-        }
-        current.push(w);
-      }
-      if (current.length) lines.push(current);
-      totalWords = words.length;
+      total = words.length;
     };
 
     let raf = 0;
     const update = () => {
-      if (!lines.length) return;
-      const vh = window.innerHeight || 1;
-      const rect = section.getBoundingClientRect();
-      const startY = vh * 0.85;
-      const endY = -rect.height * 0.15;
-      const range = Math.max(1, startY - endY);
-      const progress = Math.min(1, Math.max(0, (startY - rect.top) / range));
+      if (!total) collect();
+      if (!total) return;
 
-      let cumulative = 0;
-      for (const line of lines) {
-        const lineStart = cumulative / totalWords;
-        const lineEnd = (cumulative + line.length) / totalWords;
-        const localRaw = (progress - lineStart) / (lineEnd - lineStart);
-        const local = Math.min(1, Math.max(0, localRaw));
+      const rect = container.getBoundingClientRect();
+      const scrollableDistance = container.offsetHeight - window.innerHeight;
 
-        const wordDur = Math.min(2.5, line.length);
-        const head = local * (line.length + wordDur - 1);
-        for (let i = 0; i < line.length; i++) {
-          const p = Math.min(1, Math.max(0, (head - i) / wordDur));
-          line[i].style.opacity = (0.18 + p * 0.82).toFixed(3);
-        }
-        cumulative += line.length;
+      if (scrollableDistance <= 0) return;
+
+      // Track scroll progress while pinned
+      const rawProgress = -rect.top / scrollableDistance;
+      const progress = Math.min(1, Math.max(0, rawProgress));
+
+      // Animation completes at 80% scroll distance to allow pause/buffer before scrolling out
+      const animationProgress = Math.min(1, progress / 0.8);
+
+      const isMobile = window.innerWidth < 768;
+      const waveSize = isMobile ? 8 : 16;
+      const head = animationProgress * (total + waveSize);
+
+      for (let i = 0; i < total; i++) {
+        const diff = head - i;
+        const local = Math.min(1, Math.max(0, diff / waveSize));
+        words[i].style.opacity = (0.18 + local * 0.82).toFixed(3);
       }
     };
 
@@ -87,51 +79,58 @@ export default function MissionSection() {
       });
     };
 
-    const onResize = () => {
-      regroup();
-      onScroll();
-    };
-
-    regroup();
+    collect();
     update();
+
     window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onResize, { passive: true });
+    window.addEventListener(
+      "resize",
+      () => {
+        collect();
+        onScroll();
+      },
+      { passive: true }
+    );
+
     const fontsReady =
       typeof document !== "undefined" && "fonts" in document
         ? document.fonts.ready
         : null;
     fontsReady?.then(() => {
-      regroup();
+      collect();
       update();
     });
+
     return () => {
       window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onResize);
       if (raf) cancelAnimationFrame(raf);
     };
   }, []);
 
   return (
     <section
-      ref={sectionRef}
+      ref={containerRef}
       id="mission"
       data-section="mission"
-      className="relative flex min-h-screen w-full items-center justify-center bg-[#050E0A]"
+      className="relative mb-24 h-[240vh] w-full bg-[#050E0A] sm:mb-32 md:h-[260vh] lg:mb-40"
     >
-      <div className="mx-auto flex max-w-240 flex-col items-center gap-6 px-6 py-20 text-center sm:gap-8 sm:py-28 lg:py-34.5">
-        <p className="font-geist text-[14px] font-semibold uppercase leading-6 tracking-[-0.4px] text-white sm:text-[16px] sm:leading-7 sm:tracking-[-0.48px]">
-          <Words text="The Challenge" />
-        </p>
+      {/* Pinned Viewport Container */}
+      <div className="sticky top-0 flex h-[100dvh] w-full items-center justify-center overflow-hidden">
+        <div className="mx-auto flex max-w-240 flex-col items-center gap-6 px-6 text-center sm:gap-8 lg:gap-10">
+          <p className="font-geist text-[14px] font-semibold uppercase leading-6 tracking-[-0.4px] text-white sm:text-[16px] sm:leading-7 sm:tracking-[-0.48px]">
+            The Challenge
+          </p>
 
-        <h2 className="font-darker text-[36px] font-extrabold uppercase leading-[1.05] tracking-[-1px] text-[#E8FFED] sm:text-[44px] sm:tracking-[-1.32px] md:text-[52px] md:tracking-[-1.56px] lg:text-[64px] lg:leading-15 lg:tracking-[-1.92px]">
-          <Words text={HEADLINE_LINE_1} />
-          <br />
-          <Words text={HEADLINE_LINE_2} />
-        </h2>
+          <h2 className="font-darker text-[32px] font-extrabold uppercase leading-[1.05] tracking-[-1px] text-[#E8FFED] xs:text-[36px] sm:text-[44px] sm:tracking-[-1.32px] md:text-[52px] md:tracking-[-1.56px] lg:text-[64px] lg:leading-15 lg:tracking-[-1.92px]">
+            {HEADLINE_LINE_1}
+            <br />
+            {HEADLINE_LINE_2}
+          </h2>
 
-        <p className="font-geist text-[16px] font-medium leading-7 tracking-[-0.4px] text-[#AEB4B3] sm:text-[18px] sm:leading-7 lg:text-[20px] lg:leading-8 lg:tracking-[-0.6px]">
-          <Words text={BODY} />
-        </p>
+          <p className="font-geist text-[15px] font-medium leading-6 tracking-[-0.4px] text-[#AEB4B3] xs:text-[16px] sm:text-[18px] sm:leading-7 lg:text-[20px] lg:leading-8 lg:tracking-[-0.6px]">
+            <Words text={BODY} />
+          </p>
+        </div>
       </div>
     </section>
   );

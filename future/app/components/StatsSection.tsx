@@ -1,18 +1,120 @@
-const STATS = [
-  { value: "12", label: "Years" },
-  { value: "85+", label: "Companies Backed" },
-  { value: "16", label: "Countries" },
-  { value: "Andela & Flutterwave", label: "Cofounded" },
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+
+type StatItem = {
+  numericValue: number | null;
+  suffix?: string;
+  displayStatic?: string;
+  label: string;
+};
+
+const STATS: StatItem[] = [
+  { numericValue: 12, suffix: "", label: "Years" },
+  { numericValue: 85, suffix: "+", label: "Companies Backed" },
+  { numericValue: 16, suffix: "", label: "Countries" },
+  { numericValue: null, displayStatic: "Andela & Flutterwave", label: "Cofounded" },
 ];
 
+function StatCounter({
+  item,
+  animate,
+  delayMs,
+}: {
+  item: StatItem;
+  animate: boolean;
+  delayMs: number;
+}) {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    if (!animate || item.numericValue === null) return;
+
+    let startTimestamp: number | null = null;
+    const duration = 1200;
+    let rafId: number;
+
+    const timeout = setTimeout(() => {
+      const step = (timestamp: number) => {
+        if (!startTimestamp) startTimestamp = timestamp;
+        const elapsed = timestamp - startTimestamp;
+        const progress = Math.min(elapsed / duration, 1);
+
+        // Ease-out cubic curve
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+        setCount(Math.floor(easeOut * (item.numericValue || 0)));
+
+        if (progress < 1) {
+          rafId = requestAnimationFrame(step);
+        } else {
+          setCount(item.numericValue || 0);
+        }
+      };
+
+      rafId = requestAnimationFrame(step);
+    }, delayMs);
+
+    return () => {
+      clearTimeout(timeout);
+      cancelAnimationFrame(rafId);
+    };
+  }, [animate, item.numericValue, delayMs]);
+
+  if (item.numericValue !== null) {
+    return (
+      <div
+        className="font-darker text-[32px] font-bold tracking-[-1px] text-white xs:text-[38px] sm:text-[48px] sm:tracking-[-1.32px] md:text-[52px] lg:text-[64px] lg:tracking-[-1.92px]"
+        style={{ lineHeight: "1" }}
+      >
+        {count}
+        {item.suffix || ""}
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="font-darker text-[18px] font-bold tracking-tight text-white xs:text-[22px] sm:text-[28px] md:text-[34px] lg:text-[40px] lg:tracking-[-1px]"
+      style={{ lineHeight: "1.1" }}
+    >
+      {item.displayStatic}
+    </div>
+  );
+}
+
 export default function StatsSection() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const [inView, setInView] = useState(false);
+
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setInView(true);
+            observer.disconnect();
+          }
+        });
+      },
+      { threshold: 0.15 }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <section
+      ref={sectionRef}
       id="stats"
       data-section="stats"
-      className="relative w-full overflow-hidden bg-[#0D1D1B]"
+      className="relative w-full overflow-hidden bg-[#0D1D1B] py-10 sm:py-12 md:py-14"
       style={{ minHeight: "193px" }}
     >
+      {/* Decorative Background SVG */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-y-0 right-0 flex items-center"
@@ -65,32 +167,33 @@ export default function StatsSection() {
         </svg>
       </div>
 
-      <div className="relative z-10 mx-auto flex h-full max-w-300 items-center px-6 py-10 lg:px-12">
+      <div className="relative z-10 mx-auto flex h-full max-w-300 items-center px-4 py-8 sm:px-6 sm:py-10 lg:px-12">
+        {/* 2-column grid on mobile/small tablets, horizontal row on desktop */}
         <div
           data-stats-row
-          className="flex w-full flex-col gap-y-8 md:flex-row md:items-center md:gap-x-12"
+          className="grid w-full grid-cols-2 items-center justify-items-center gap-x-4 gap-y-8 sm:gap-x-8 md:flex md:items-center md:justify-between md:gap-x-8 lg:gap-x-12"
         >
           {STATS.map((stat, i) => (
             <div
               key={stat.label}
               data-stat
               data-stat-index={i}
-              className="flex items-center gap-x-12"
+              className="flex w-full items-center justify-center gap-x-4 sm:gap-x-6 md:w-auto md:gap-x-8 lg:gap-x-12"
             >
-              <div className="flex flex-col items-center gap-3 whitespace-nowrap text-center sm:gap-5">
+              <div className="flex w-full flex-col items-center gap-1.5 text-center sm:gap-2.5 md:gap-4">
+                <StatCounter
+                  item={stat}
+                  animate={inView}
+                  delayMs={i * 180}
+                />
                 <div
-                  className="font-darker text-[36px] font-bold whitespace-nowrap tracking-[-1px] text-white sm:text-[44px] sm:tracking-[-1.32px] md:text-[52px] md:tracking-[-1.56px] lg:text-[64px] lg:tracking-[-1.92px]"
-                  style={{ lineHeight: "1" }}
-                >
-                  {stat.value}
-                </div>
-                <div
-                  className="font-geist text-[16px] font-medium tracking-[-0.5px] text-[#AEAEAE] sm:text-[18px] lg:text-[20px] lg:tracking-[-0.8px]"
+                  className="font-geist text-[13px] font-medium tracking-[-0.3px] text-[#AEAEAE] sm:text-[15px] sm:tracking-[-0.4px] lg:text-[18px] lg:tracking-[-0.6px]"
                   style={{ lineHeight: "1.2" }}
                 >
                   {stat.label}
                 </div>
               </div>
+
               {i < STATS.length - 1 && (
                 <span
                   aria-hidden="true"
