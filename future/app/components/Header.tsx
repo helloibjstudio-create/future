@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const NAV_LINKS = [
   { label: "Visions", href: "#visions" },
@@ -10,6 +10,25 @@ const NAV_LINKS = [
 
 export default function Header() {
   const [muted, setMuted] = useState(true);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      // Get the viewport height to know when we've left the Hero section (100vh).
+      // Subtracting 80px accounts for the approximate height of the header itself.
+      const threshold = window.innerHeight - 80;
+      setIsScrolled(window.scrollY > threshold);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    
+    // Check initial position on mount
+    handleScroll();
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
 
   const toggleMute = () => {
     const video = document.querySelector<HTMLVideoElement>("[data-hero-video]");
@@ -23,7 +42,13 @@ export default function Header() {
   };
 
   return (
-    <header className="fixed top-0 right-0 left-0 z-50 w-full">
+    <header
+      className={`fixed top-0 right-0 left-0 z-50 w-full transition-all duration-300 ${
+        isScrolled
+          ? "bg-[#06231E]/95 backdrop-blur-md shadow-lg"
+          : "bg-transparent"
+      }`}
+    >
       <div className="flex items-center justify-between px-6 py-5 lg:pr-20 lg:pl-20">
         <div className="flex items-center gap-12.75">
           <a href="#top" aria-label="Future" className="flex items-center gap-2">

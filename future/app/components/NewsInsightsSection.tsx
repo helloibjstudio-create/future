@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 type Category = "ALL" | "NEWS" | "ESSAYS" | "RESEARCH" | "CONVERSATIONS" | "MEDIA KITS";
 
@@ -32,10 +32,44 @@ const INSIGHTS: Insight[] = Array.from({ length: 9 }).map((_, i) => ({
 
 export default function NewsInsightsSection() {
   const [active, setActive] = useState<Category>("ALL");
+  const [revealed, setRevealed] = useState<Set<string>>(new Set());
 
   const visible = active === "ALL"
     ? INSIGHTS
     : INSIGHTS.filter((n) => n.category === active);
+
+  // Intersection Observer to handle scroll & filter entry animations
+  useEffect(() => {
+    // Reset revealed items when switching tabs so they re-animate
+    setRevealed(new Set());
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const id = entry.target.getAttribute("data-anim-id");
+            if (id) {
+              setRevealed((prev) => new Set(prev).add(id));
+              observer.unobserve(entry.target);
+            }
+          }
+        });
+      },
+      { threshold: 0.1, rootMargin: "0px 0px -50px 0px" }
+    );
+
+    // Slight delay ensures the DOM has updated with the new filtered elements before observing
+    const timer = setTimeout(() => {
+      document.querySelectorAll("[data-anim-id]").forEach((el) => {
+        observer.observe(el);
+      });
+    }, 50);
+
+    return () => {
+      clearTimeout(timer);
+      observer.disconnect();
+    };
+  }, [active]);
 
   return (
     <section
@@ -60,7 +94,7 @@ export default function NewsInsightsSection() {
           </p>
         </div>
 
-        {/* Categories / Tabs: Smooth scroll on mobile, wrap on tablet/desktop */}
+        {/* Categories / Tabs */}
         <div
           data-news-tabs
           className="mb-8 flex w-full items-center gap-2 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] sm:mb-12 sm:flex-wrap sm:justify-center sm:gap-2.5 sm:overflow-visible sm:pb-0 md:mb-16 [&::-webkit-scrollbar]:hidden"
@@ -84,35 +118,47 @@ export default function NewsInsightsSection() {
           data-news-grid
           className="mx-auto grid grid-cols-1 items-stretch justify-items-center gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3"
         >
-          {visible.map((n) => (
-            <article
-              key={n.key}
-              data-news-card
-              data-news-key={n.key}
-              className="flex w-full max-w-120 flex-col items-start justify-between rounded-3xl bg-[#062520] p-6 sm:rounded-4xl sm:p-7 lg:py-8"
-            >
-              <div>
-                <p className="font-geist text-[13px] font-medium uppercase leading-6 tracking-[-0.64px] text-[#E8FFED] sm:text-[15px] sm:leading-7">
-                  {n.category}
-                </p>
-                <h3
-                  className="mt-4 font-darker text-[20px] font-bold tracking-[-0.72px] text-[#E8FFED] sm:mt-5 sm:text-[22px] lg:mt-6 lg:text-[24px]"
-                  style={{ lineHeight: "1.2" }}
-                >
-                  {n.title}
-                </h3>
-                <p className="mt-2.5 font-geist text-[14px] font-medium leading-6 tracking-[-0.5px] text-white/68 sm:mt-3 sm:text-[15px] sm:leading-6">
-                  {n.excerpt}
-                </p>
-              </div>
-              <a
-                href={n.href}
-                className="mt-6 inline-flex h-10 items-center justify-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-4.5 font-darker text-[14px] font-bold uppercase leading-none tracking-[-0.48px] text-white transition-colors hover:bg-white/10 sm:h-10.25 sm:px-5 sm:text-[16px]"
+          {visible.map((n, i) => {
+            // Unique ID combining the active filter and card key so they remount/reanimate on tab change
+            const uid = `${active}-${n.key}`;
+            const isRevealed = revealed.has(uid);
+
+            return (
+              <article
+                key={uid}
+                data-news-card
+                data-anim-id={uid}
+                className={`flex w-full max-w-120 flex-col items-start justify-between rounded-3xl bg-[#062520] p-6 sm:rounded-4xl sm:p-7 lg:py-8 will-change-[opacity,transform] transition-all duration-700 ease-out ${
+                  isRevealed
+                    ? "translate-y-0 scale-100 opacity-100"
+                    : "translate-y-10 scale-[0.98] opacity-0"
+                }`}
+                // Stagger the entry delay based on the column index
+                style={{ transitionDelay: `${(i % 3) * 100}ms` }}
               >
-                Read Essay
-              </a>
-            </article>
-          ))}
+                <div>
+                  <p className="font-geist text-[13px] font-medium uppercase leading-6 tracking-[-0.64px] text-[#E8FFED] sm:text-[15px] sm:leading-7">
+                    {n.category}
+                  </p>
+                  <h3
+                    className="mt-4 font-darker text-[20px] font-bold tracking-[-0.72px] text-[#E8FFED] sm:mt-5 sm:text-[22px] lg:mt-6 lg:text-[24px]"
+                    style={{ lineHeight: "1.2" }}
+                  >
+                    {n.title}
+                  </h3>
+                  <p className="mt-2.5 font-geist text-[14px] font-medium leading-6 tracking-[-0.5px] text-white/68 sm:mt-3 sm:text-[15px] sm:leading-6">
+                    {n.excerpt}
+                  </p>
+                </div>
+                <a
+                  href={n.href}
+                  className="mt-6 inline-flex h-10 items-center justify-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-4.5 font-darker text-[14px] font-bold uppercase leading-none tracking-[-0.48px] text-white transition-colors hover:bg-white/10 sm:h-10.25 sm:px-5 sm:text-[16px]"
+                >
+                  Read Essay
+                </a>
+              </article>
+            );
+          })}
         </div>
       </div>
     </section>
