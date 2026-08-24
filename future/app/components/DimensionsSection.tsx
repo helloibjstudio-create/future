@@ -12,6 +12,7 @@ type Dimension = {
   links: { label: string; href: string }[];
 };
 
+// Reordered to match the clockwise visual layout
 const DIMENSIONS: Dimension[] = [
   {
     key: "talent",
@@ -41,12 +42,12 @@ const DIMENSIONS: Dimension[] = [
     ],
   },
   {
-    key: "futurepay",
-    label: "FUTURE PAY",
-    category: "DIGITAL FINANCIAL SERVICES",
-    title: "FUTUREPAY",
-    description: "Building the financial rails for a digital economy.",
-    bullets: ["Solves the financial access gap with payment and value rails."],
+    key: "itana",
+    label: "ITANA",
+    category: "DIGITAL GOVERNMENT",
+    title: "ITANA",
+    description: "Building the environments for digital businesses to grow.",
+    bullets: ["Solves the operating environment gap via digital governance."],
     links: [
       { label: "WEBSITE", href: "#" },
       { label: "LINKEDIN", href: "#" },
@@ -66,12 +67,12 @@ const DIMENSIONS: Dimension[] = [
     ],
   },
   {
-    key: "itana",
-    label: "ITANA",
-    category: "DIGITAL GOVERNMENT",
-    title: "ITANA",
-    description: "Building the environments for digital businesses to grow.",
-    bullets: ["Solves the operating environment gap via digital governance."],
+    key: "futurepay",
+    label: "FUTURE PAY",
+    category: "DIGITAL FINANCIAL SERVICES",
+    title: "FUTUREPAY",
+    description: "Building the financial rails for a digital economy.",
+    bullets: ["Solves the financial access gap with payment and value rails."],
     links: [
       { label: "WEBSITE", href: "#" },
       { label: "LINKEDIN", href: "#" },
@@ -90,12 +91,13 @@ const OUTER_RING_R = 210;
 const NODE_R = 20;
 const NODE_ORBIT = 210;
 
+// Increased the offsets to give plenty of clearance under the text
 const LABEL_TRANSFORMS = [
-  "translate(-50%, calc(-100% - 12px))",
-  "translate(-50%, calc(-100% - 12px))",
-  "translate(-50%, 14px)",
-  "translate(-50%, 14px)",
-  "translate(-50%, calc(-100% - 12px))",
+  "translate(-50%, calc(-100% - 32px))",             // Top (Talent)
+  "translate(calc(-50% + 36px), calc(-100% - 28px))", // Top-Right (Asset)
+  "translate(calc(-50% + 28px), 30px)",              // Bottom-Right (Itana)
+  "translate(calc(-50% - 28px), 30px)",              // Bottom-Left (Infraco)
+  "translate(calc(-50% - 36px), calc(-100% - 28px))", // Top-Left (Future Pay)
 ];
 
 function nodeAngle(index: number) {
@@ -307,7 +309,6 @@ export default function DimensionsSection() {
           </div>
 
           {/* Right Narrative List */}
-          {/* Sized so the last item reaches the top level of the diagram and naturally exits immediately */}
           <div className="relative z-10 flex flex-col pt-0">
             {DIMENSIONS.map((d, index) => {
               const isActive = d.key === activeKey;

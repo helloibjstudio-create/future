@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 
 const HEADLINE_LINE_1 = "Africa needs 25 million";
-const HEADLINE_LINE_2 = "new jobs. Every year.";
+const HEADLINE_LINE_2 = "new jobs. Every year";
 
 const BODY =
   "Physical infrastructure cannot scale quickly enough to absorb a rapidly growing workforce. The digital economy provides a scalable path to connect African talent to global demand. Future is building the systems that make digital work possible. The goal is to directly contribute 10 million jobs where talent earn $10,000 annually. But a digital economy needs more than skilled people; it requires the assets, infrastructure, financial systems, and environments that enable productivity at scale. This is why Future is a group of companies in five dimensions, working together as an integrated digital conglomerate.";

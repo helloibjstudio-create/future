@@ -86,7 +86,7 @@ export default function NewsInsightsSection() {
           <h2 className="font-darker text-[32px] font-extrabold uppercase leading-[1.05] tracking-[-1px] text-[#E8FFED] sm:text-[44px] sm:tracking-[-1.32px] md:text-[52px] md:tracking-[-1.56px] lg:text-[64px] lg:leading-15 lg:tracking-[-1.92px]">
             See the future
             <br />
-            through our lens.
+            through our lens
           </h2>
           <p className="max-w-167.25 font-geist text-[15px] font-medium leading-6 tracking-[-0.4px] text-white/68 sm:text-[18px] sm:leading-7 lg:text-[20px] lg:leading-8 lg:tracking-[-0.8px]">
             Studying and sharing the forces, ideas, news, and evidence shaping

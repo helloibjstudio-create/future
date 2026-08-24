@@ -117,9 +117,12 @@ export default function TimelineSection() {
           isPassed = true;
         }
 
-        // Apply smooth styles to the card
-        card.style.opacity = opacity.toFixed(3);
-        card.style.transform = `scale(${scale.toFixed(3)})`;
+        // Apply smooth styles ONLY to the `<article>` tag, preserving the wrapper and line lengths
+        const article = card.querySelector("article");
+        if (article) {
+          article.style.opacity = opacity.toFixed(3);
+          article.style.transform = `scale(${scale.toFixed(3)})`;
+        }
 
         // Update the visual state of the original white half-circle nodes
         const node = card.querySelector("[data-node]") as HTMLElement;
@@ -225,18 +228,19 @@ export default function TimelineSection() {
                     ref={(el) => {
                       cardsRef.current[i] = el;
                     }}
-                    style={{
-                      gridRow: i + 1,
-                      opacity: 0.2,
-                      transform: "scale(0.95)",
-                    }}
-                    className={`relative w-full transition-transform duration-100 will-change-[opacity,transform] md:max-w-98.25 ${
+                    style={{ gridRow: i + 1 }}
+                    className={`relative w-full md:max-w-98.25 ${
                       isLeft
                         ? "md:col-start-1 md:justify-self-end"
                         : "md:col-start-3 md:justify-self-start"
                     }`}
                   >
-                    <article className="flex flex-col items-start rounded-3xl border border-[#244F39] bg-[#0D1D1B] p-6 shadow-2xl sm:rounded-4xl sm:p-8">
+                    <article 
+                      className={`flex flex-col items-start rounded-3xl border border-[#244F39] bg-[#0D1D1B] p-6 shadow-2xl sm:rounded-4xl sm:p-8 transition-transform duration-100 will-change-[opacity,transform] ${
+                        isLeft ? "origin-right" : "origin-left"
+                      }`}
+                      style={{ opacity: 0.2, transform: "scale(0.95)" }}
+                    >
                       <p className="font-darker text-[16px] font-extrabold uppercase leading-8 tracking-[-0.48px] text-[#9B9B9B] sm:text-[20px] sm:leading-15 sm:tracking-[-0.6px]">
                         {era.years}
                       </p>
@@ -248,7 +252,7 @@ export default function TimelineSection() {
                       </p>
                     </article>
 
-                    {/* Original White Half-Circle Connector Line */}
+                    {/* Fixed Line Connections (No longer scales or fades) */}
                     <div
                       aria-hidden="true"
                       className={`pointer-events-none absolute top-1/2 hidden -translate-y-1/2 items-center md:flex ${
