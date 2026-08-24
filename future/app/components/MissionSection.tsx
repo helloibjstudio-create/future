@@ -57,8 +57,8 @@ export default function MissionSection() {
       const rawProgress = -rect.top / scrollableDistance;
       const progress = Math.min(1, Math.max(0, rawProgress));
 
-      // Animation completes at 80% scroll distance to allow pause/buffer before scrolling out
-      const animationProgress = Math.min(1, progress / 0.8);
+      // Animation smoothly completes near the end of the pinned scroll
+      const animationProgress = Math.min(1, progress / 0.9);
 
       const isMobile = window.innerWidth < 768;
       const waveSize = isMobile ? 8 : 16;
@@ -112,7 +112,7 @@ export default function MissionSection() {
       ref={containerRef}
       id="mission"
       data-section="mission"
-      className="relative mb-24 h-[240vh] w-full bg-[#050E0A] sm:mb-32 md:h-[260vh] lg:mb-40"
+      className="relative mb-8 h-[170vh] w-full bg-[#050E0A] sm:mb-12 md:h-[180vh] lg:mb-16"
     >
       {/* Pinned Viewport Container */}
       <div className="sticky top-0 flex h-[100dvh] w-full items-center justify-center overflow-hidden">

@@ -110,7 +110,7 @@ export default function HeroSection() {
       ref={sectionRef}
       id="hero"
       data-section="hero"
-      className="sticky top-0 z-0 flex h-[100dvh] w-full items-end overflow-hidden pb-12 sm:pb-20 lg:pb-36"
+      className="sticky top-0 z-0 flex h-[100dvh] w-full items-end overflow-hidden pb-[35dvh] sm:pb-20 lg:pb-36"
     >
       <video
         ref={videoRef}

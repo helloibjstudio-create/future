@@ -113,6 +113,7 @@ function nodeSvgPos(index: number) {
 export default function DimensionsSection() {
   const [activeKey, setActiveKey] = useState(DIMENSIONS[0].key);
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const diagramRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const isMobile = window.innerWidth < 1024;
@@ -127,8 +128,8 @@ export default function DimensionsSection() {
       },
       {
         root: null,
-        // Wider vertical window on mobile to account for sticky diagram header
-        rootMargin: isMobile ? "-55% 0px -25% 0px" : "-35% 0px -35% 0px",
+        // Aligns trigger strictly with top level of the sticky diagram
+        rootMargin: isMobile ? "-20% 0px -55% 0px" : "-18% 0px -60% 0px",
         threshold: 0.1,
       }
     );
@@ -146,7 +147,7 @@ export default function DimensionsSection() {
     if (cardRefs.current[index]) {
       cardRefs.current[index]?.scrollIntoView({
         behavior: "smooth",
-        block: "center",
+        block: "start",
       });
     }
   };
@@ -155,11 +156,11 @@ export default function DimensionsSection() {
     <section
       id="companies"
       data-section="dimensions"
-      className="relative w-full bg-[#050E0A] pt-4 pb-24 md:pt-8 md:pb-32"
+      className="relative w-full bg-[#050E0A] pt-4 pb-12 sm:pb-16 lg:pb-20"
     >
       <div className="mx-auto max-w-300 px-4 sm:px-6 lg:px-12">
         {/* Section Header */}
-        <div className="mx-auto mb-8 flex max-w-240 flex-col items-center gap-4 text-center sm:mb-12 sm:gap-6 lg:mb-16 lg:gap-10">
+        <div className="mx-auto mb-10 flex max-w-240 flex-col items-center gap-4 text-center sm:mb-14 sm:gap-6 lg:mb-16 lg:gap-10">
           <p className="font-geist text-[13px] font-medium uppercase leading-6 tracking-[-0.4px] text-[#E8FFED] sm:text-[16px] sm:leading-7">
             Companies
           </p>
@@ -175,12 +176,14 @@ export default function DimensionsSection() {
         </div>
 
         {/* Layout Grid */}
-        <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:gap-24">
+        <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:gap-20">
           
-          {/* Diagram Container */}
-          {/* On Mobile/Tablet: Sticky top with solid background so scrolling list disappears behind it */}
-          <div className="sticky top-0 z-20 flex w-full flex-col items-center justify-center bg-[#050E0A] pt-4 pb-6 sm:py-6 lg:top-16 lg:z-10 lg:items-start lg:bg-transparent lg:p-0">
-            <div className="relative aspect-square w-full max-w-[320px] xs:max-w-[360px] sm:max-w-[420px] lg:max-w-[480px]">
+          {/* Left Sticky Diagram Container */}
+          <div
+            ref={diagramRef}
+            className="sticky top-0 z-20 flex w-full flex-col items-center justify-start bg-[#050E0A] pt-2 pb-6 sm:py-4 lg:top-24 lg:z-10 lg:items-start lg:bg-transparent lg:p-0"
+          >
+            <div className="relative aspect-square w-full max-w-[300px] xs:max-w-[340px] sm:max-w-[400px] lg:max-w-[460px]">
               <svg
                 viewBox={`0 0 ${VIEW} ${VIEW}`}
                 className="h-full w-full overflow-visible"
@@ -207,7 +210,7 @@ export default function DimensionsSection() {
                   strokeDasharray="10 10"
                 />
 
-                {/* Dark Base Connector Lines */}
+                {/* Base Dark Lines */}
                 {DIAGRAM_DIMENSIONS.map((d, i) => {
                   const { x, y } = nodeSvgPos(i);
                   return (
@@ -223,7 +226,7 @@ export default function DimensionsSection() {
                   );
                 })}
 
-                {/* Glowing Light Ray */}
+                {/* Active Light Ray */}
                 {DIAGRAM_DIMENSIONS.map((d, i) => {
                   const { x, y } = nodeSvgPos(i);
                   const isActive = d.key === activeKey;
@@ -247,10 +250,10 @@ export default function DimensionsSection() {
                   );
                 })}
 
-                {/* Center Core */}
+                {/* Core Node */}
                 <circle cx={CENTER} cy={CENTER} r={NODE_R} fill="#6DD693" />
 
-                {/* Outer Orbit Nodes */}
+                {/* Node Endpoints */}
                 {DIAGRAM_DIMENSIONS.map((d, i) => {
                   const { x, y } = nodeSvgPos(i);
                   const isActive = d.key === activeKey;
@@ -300,14 +303,16 @@ export default function DimensionsSection() {
               })}
             </div>
 
-            {/* Bottom Gradient Fade for Mobile (smoothly cuts off card text as it scrolls under) */}
             <div className="pointer-events-none absolute -bottom-6 left-0 h-6 w-full bg-gradient-to-b from-[#050E0A] to-transparent lg:hidden" />
           </div>
 
-          {/* Scrolling Company Narrative List */}
-          <div className="relative z-10 flex flex-col pt-2 lg:pt-0">
+          {/* Right Narrative List */}
+          {/* Sized so the last item reaches the top level of the diagram and naturally exits immediately */}
+          <div className="relative z-10 flex flex-col pt-0">
             {DIMENSIONS.map((d, index) => {
               const isActive = d.key === activeKey;
+              const isLast = index === DIMENSIONS.length - 1;
+
               return (
                 <div
                   key={d.key}
@@ -315,27 +320,29 @@ export default function DimensionsSection() {
                     cardRefs.current[index] = el;
                   }}
                   data-dimension-key={d.key}
-                  className={`flex min-h-[50vh] flex-col justify-center border-b border-[#152422] py-10 transition-all duration-500 sm:min-h-[60vh] sm:py-14 lg:min-h-[85vh] lg:py-16 ${
-                    isActive
-                      ? "opacity-100"
-                      : "opacity-20 sm:opacity-25"
-                  }`}
+                  className={`flex flex-col justify-start border-b border-[#152422] transition-opacity duration-300 ${
+                    index === 0
+                      ? "pt-0 pb-10 sm:pb-12 lg:pb-14"
+                      : isLast
+                      ? "pt-8 pb-4 sm:pt-10 lg:pt-12 border-b-0 min-h-[300px] lg:min-h-[460px]"
+                      : "py-8 sm:py-10 lg:py-12"
+                  } ${isActive ? "opacity-100" : "opacity-20"}`}
                 >
                   <p className="font-darker text-[13px] font-bold uppercase tracking-[-0.42px] text-[#A8AEAD] sm:text-[14px]">
                     {d.category}
                   </p>
-                  <h3 className="font-darker text-[24px] font-bold uppercase leading-9 tracking-[-0.66px] text-[#6DD693] sm:text-[30px] sm:leading-11 lg:text-[36px] lg:leading-12">
+                  <h3 className="mt-1 font-darker text-[24px] font-bold uppercase leading-8 tracking-[-0.66px] text-[#6DD693] sm:text-[28px] sm:leading-10 lg:text-[34px] lg:leading-11">
                     {d.title}
                   </h3>
-                  <p className="mt-2 font-geist text-[15px] font-medium leading-6 tracking-[-0.4px] text-white/80 sm:text-[17px] sm:leading-7">
+                  <p className="mt-2 font-geist text-[15px] font-medium leading-6 tracking-[-0.4px] text-white/80 sm:text-[16px] sm:leading-7">
                     {d.description}
                   </p>
 
-                  <ul className="mt-4 space-y-2">
+                  <ul className="mt-3 space-y-2">
                     {d.bullets.map((b) => (
                       <li
                         key={b}
-                        className="flex items-center gap-3 font-darker text-[15px] font-semibold leading-6 text-white/70 sm:text-[16px]"
+                        className="flex items-center gap-3 font-darker text-[14px] font-semibold leading-5 text-white/70 sm:text-[15px]"
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -366,7 +373,7 @@ export default function DimensionsSection() {
                     ))}
                   </ul>
 
-                  <div className="mt-5 flex items-center gap-3">
+                  <div className="mt-4 flex items-center gap-3">
                     {d.links.map((l) => (
                       <a
                         key={l.label}
