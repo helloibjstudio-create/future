@@ -183,7 +183,7 @@ export default function DimensionsSection() {
           {/* Left Sticky Diagram Container */}
           <div
             ref={diagramRef}
-            className="sticky top-0 z-20 flex w-full flex-col items-center justify-start bg-[#050E0A] pt-2 pb-6 sm:py-4 lg:top-24 lg:z-10 lg:items-start lg:bg-transparent lg:p-0"
+            className="sticky top-0 z-20 flex w-full flex-col items-center justify-start bg-[#050E0A] pt-2 pb-6 sm:py-4 lg:top-85 lg:z-10 lg:items-start lg:bg-transparent lg:p-0"
           >
             <div className="relative aspect-square w-full max-w-[300px] xs:max-w-[340px] sm:max-w-[400px] lg:max-w-[460px]">
               <svg
